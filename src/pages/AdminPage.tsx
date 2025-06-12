@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -40,9 +40,10 @@ import {
 } from '@chakra-ui/react';
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { useAuth } from '../contexts/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { Label } from '../components/Label';
+import { useReactToPrint } from 'react-to-print';
 
 interface ItemPurchased {
   itemNumber: string;
@@ -67,17 +68,22 @@ interface DocumentData {
 }
 
 export const AdminPage = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const [documents, setDocuments] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDoc, setSelectedDoc] = useState<DocumentData | null>(null);
   const [editData, setEditData] = useState<Partial<DocumentData>>({});
+  const labelRef = useRef<HTMLDivElement>(null);
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
+  const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
+
+  const handlePrint = useReactToPrint({
+    content: () => labelRef.current,
+  });
 
   useEffect(() => {
     fetchDocuments();
@@ -190,6 +196,11 @@ export const AdminPage = () => {
     return new Date(date).toLocaleDateString();
   };
 
+  const handleView = (document: DocumentData) => {
+    setSelectedDoc(document);
+    onViewOpen();
+  };
+
   if (loading) {
     return (
       <Container maxW="container.xl" py={10}>
@@ -255,6 +266,13 @@ export const AdminPage = () => {
                         <Td>{formatDate(doc.createdAt)}</Td>
                         <Td>
                           <HStack spacing={2}>
+                            <IconButton
+                              aria-label="View"
+                              icon={<Box as="span" className="material-icons">visibility</Box>}
+                              size="sm"
+                              colorScheme="blue"
+                              onClick={() => handleView(doc)}
+                            />
                             <IconButton
                               aria-label="Edit"
                               icon={<Box as="span" className="material-icons">edit</Box>}
@@ -419,6 +437,104 @@ export const AdminPage = () => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* View Modal */}
+      <Modal isOpen={isViewOpen} onClose={onViewClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>View Order</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4}>
+              <HStack spacing={4} width="full">
+                <FormControl>
+                  <FormLabel>First Name</FormLabel>
+                  <Input value={selectedDoc?.firstName || ''} isReadOnly />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Last Name</FormLabel>
+                  <Input value={selectedDoc?.lastName || ''} isReadOnly />
+                </FormControl>
+              </HStack>
+
+              <HStack spacing={4} width="full">
+                <FormControl>
+                  <FormLabel>Invoice #</FormLabel>
+                  <Input value={selectedDoc?.invoiceNumber || ''} isReadOnly />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Purchase Date</FormLabel>
+                  <Input value={selectedDoc?.dateOfPurchase || ''} isReadOnly />
+                </FormControl>
+              </HStack>
+
+              <HStack spacing={8}>
+                <Checkbox isChecked={selectedDoc?.isPickup} isReadOnly>
+                  Pickup
+                </Checkbox>
+                <Checkbox isChecked={selectedDoc?.isDelivery} isReadOnly>
+                  Delivery
+                </Checkbox>
+              </HStack>
+
+              {selectedDoc?.isPickup && (
+                <FormControl>
+                  <FormLabel>Estimated Pickup Date</FormLabel>
+                  <Input value={selectedDoc?.estimatedPickupDate || ''} isReadOnly />
+                </FormControl>
+              )}
+
+              {selectedDoc?.isDelivery && (
+                <VStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Delivery Date</FormLabel>
+                    <Input value={selectedDoc?.deliveryDate || ''} isReadOnly />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Delivery Address</FormLabel>
+                    <Textarea value={selectedDoc?.deliveryAddress || ''} isReadOnly />
+                  </FormControl>
+                </VStack>
+              )}
+
+              <Box width="full">
+                <Heading size="sm" mb={2}>Items Purchased</Heading>
+                <Table size="sm">
+                  <Thead>
+                    <Tr>
+                      <Th>Item #</Th>
+                      <Th>Description</Th>
+                      <Th>Qty</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {selectedDoc?.itemsPurchased?.map((item, index) => (
+                      <Tr key={index}>
+                        <Td>{item.itemNumber}</Td>
+                        <Td>{item.description}</Td>
+                        <Td>{item.qty}</Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" onClick={handlePrint} mr={3}>
+              Print Label
+            </Button>
+            <Button onClick={onViewClose}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Hidden label for printing */}
+      <div style={{ display: 'none' }}>
+        <div ref={labelRef}>
+          {selectedDoc && <Label data={selectedDoc} />}
+        </div>
+      </div>
     </Container>
   );
 };
