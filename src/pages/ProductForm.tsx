@@ -51,7 +51,7 @@ interface ProductData {
 
 export const ProductForm = () => {
   const { user } = useAuth();
-  const [formData, setFormData] = useState<ProductData>({
+  const initialFormData = {
     firstName: '',
     lastName: '',
     invoiceNumber: '',
@@ -64,7 +64,9 @@ export const ProductForm = () => {
     itemsPurchased: [
       { itemNumber: '', description: '', qty: '' }
     ],
-  });
+  };
+
+  const [formData, setFormData] = useState<ProductData>(initialFormData);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
@@ -92,6 +94,7 @@ export const ProductForm = () => {
         isClosable: true,
       });
       handlePrint();
+      setFormData(initialFormData);
     } catch (error) {
       console.error('Firestore error:', error);
       toast({
