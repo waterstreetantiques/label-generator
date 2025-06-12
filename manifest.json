@@ -8,6 +8,11 @@
   "theme_color": "#3182ce",
   "orientation": "any",
   "scope": "/label-generator/",
+  "prefer_related_applications": false,
+  "display_override": ["fullscreen", "standalone"],
+  "categories": ["business", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/label-generator/favicon.png",
@@ -21,8 +26,5 @@
       "type": "image/png",
       "purpose": "any"
     }
-  ],
-  "categories": ["business", "productivity"],
-  "lang": "en",
-  "dir": "ltr"
+  ]
 } 
