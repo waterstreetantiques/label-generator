@@ -8,24 +8,30 @@ import {
   Heading,
   Text,
   VStack,
-  HStack,
   useToast,
-  Image,
   Grid,
   GridItem,
   Card,
   CardBody,
-  Icon,
   Flex,
   Divider,
-  useColorModeValue
+  useColorModeValue,
+  FormControl,
+  FormLabel,
+  Input,
+  InputGroup,
+  InputRightElement,
+  IconButton
 } from '@chakra-ui/react';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 
 export const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
   const { setUser } = useAuth();
@@ -38,18 +44,18 @@ export const Login = () => {
   const iconBg = useColorModeValue('blue.100', 'blue.900');
   const iconColor = useColorModeValue('blue.600', 'blue.300');
 
-  const handleGoogleLogin = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       setIsLoading(true);
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithEmailAndPassword(auth, email, password);
       setUser(result.user);
-      navigate('/admin');
-    } catch (error) {
-      console.error(error);
+      navigate('/form');
+    } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to sign in with Google',
+        description: error.message || 'Failed to sign in',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -143,23 +149,57 @@ export const Login = () => {
                 Ready to Get Started?
               </Heading>
               <Text color={textColor}>
-                Sign in with your Google account to access the dashboard
+                Sign in to access the dashboard
               </Text>
             </VStack>
 
-            <Button
-              colorScheme="blue"
-              size="lg"
-              width="full"
-              onClick={handleGoogleLogin}
-              isLoading={isLoading}
-              leftIcon={<Box as="span" className="material-icons">login</Box>}
-              shadow="md"
-              _hover={{ shadow: 'lg', transform: 'translateY(-1px)' }}
-              transition="all 0.2s"
-            >
-              Sign in with Google
-            </Button>
+            <form onSubmit={handleLogin} style={{ width: '100%' }}>
+              <VStack spacing={4} w="full">
+                <FormControl isRequired>
+                  <FormLabel>Email</FormLabel>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                  />
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Password</FormLabel>
+                  <InputGroup>
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                    />
+                    <InputRightElement>
+                      <IconButton
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        icon={<Box as="span" className="material-icons">{showPassword ? 'visibility_off' : 'visibility'}</Box>}
+                        variant="ghost"
+                        onClick={() => setShowPassword(!showPassword)}
+                      />
+                    </InputRightElement>
+                  </InputGroup>
+                </FormControl>
+
+                <Button
+                  type="submit"
+                  colorScheme="blue"
+                  size="lg"
+                  width="full"
+                  isLoading={isLoading}
+                  leftIcon={<Box as="span" className="material-icons">login</Box>}
+                  shadow="md"
+                  _hover={{ shadow: 'lg', transform: 'translateY(-1px)' }}
+                  transition="all 0.2s"
+                >
+                  Sign In
+                </Button>
+              </VStack>
+            </form>
 
             <Text fontSize="sm" color={useColorModeValue('gray.500', 'gray.400')} textAlign="center">
               Secure authentication • Access restricted to authorized users

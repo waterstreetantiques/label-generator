@@ -365,7 +365,7 @@ export const ProductForm = () => {
         </Box>
         <div style={{ display: 'none' }}>
           <div ref={labelRef}>
-            <Label data={formData} />
+            <Label data={{ ...formData, userEmail: user?.email || undefined }} />
           </div>
         </div>
       </VStack>
