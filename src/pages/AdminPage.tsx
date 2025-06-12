@@ -83,6 +83,18 @@ export const AdminPage = () => {
 
   const handlePrint = useReactToPrint({
     content: () => labelRef.current,
+    onBeforeGetContent: () => {
+      // Ensure the label is visible before printing
+      if (labelRef.current) {
+        labelRef.current.style.display = 'block';
+      }
+    },
+    onAfterPrint: () => {
+      // Hide the label after printing
+      if (labelRef.current) {
+        labelRef.current.style.display = 'none';
+      }
+    }
   });
 
   useEffect(() => {
@@ -529,9 +541,17 @@ export const AdminPage = () => {
         </ModalContent>
       </Modal>
 
-      {/* Hidden label for printing */}
-      <div style={{ display: 'none' }}>
-        <div ref={labelRef}>
+      {/* Label for printing */}
+      <div style={{
+        position: 'fixed',
+        top: '-9999px',
+        left: '-9999px',
+        width: '4in',
+        height: '6in',
+        backgroundColor: 'white',
+        zIndex: -1
+      }}>
+        <div ref={labelRef} style={{ display: 'none' }}>
           {selectedDoc && <Label data={selectedDoc} />}
         </div>
       </div>
