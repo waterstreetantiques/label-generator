@@ -52,19 +52,17 @@ interface ProductData {
 export const ProductForm = () => {
   const { user } = useAuth();
   const [formData, setFormData] = useState<ProductData>({
-    firstName: 'John',
-    lastName: 'Smith',
-    invoiceNumber: 'INV-2024-001',
-    dateOfPurchase: '2024-01-15',
+    firstName: '',
+    lastName: '',
+    invoiceNumber: '',
+    dateOfPurchase: '',
     isPickup: true,
     isDelivery: false,
-    estimatedPickupDate: '2024-01-20',
+    estimatedPickupDate: '',
     deliveryDate: '',
     deliveryAddress: '',
     itemsPurchased: [
-      { itemNumber: 'ITM-001', description: 'Wooden Dining Table', qty: '1' },
-      { itemNumber: 'ITM-002', description: 'Leather Office Chair', qty: '2' },
-      { itemNumber: 'ITM-003', description: 'Steel Bookshelf', qty: '1' }
+      { itemNumber: '', description: '', qty: '' }
     ],
   });
   const [loading, setLoading] = useState(false);

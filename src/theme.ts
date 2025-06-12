@@ -1,9 +1,10 @@
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react';
+import { mode } from '@chakra-ui/theme-tools';
 
-// Theme configuration for dark mode
+// Theme configuration for dark mode with localStorage persistence
 const config: ThemeConfig = {
   initialColorMode: 'light',
-  useSystemColorMode: true, // Use system preference
+  useSystemColorMode: false, // Set to false to allow manual persistence
 };
 
 // Custom theme
@@ -12,8 +13,8 @@ const theme = extendTheme({
   styles: {
     global: (props) => ({
       body: {
-        bg: props.colorMode === 'dark' ? 'gray.800' : 'gray.50',
-        color: props.colorMode === 'dark' ? 'white' : 'gray.800',
+        bg: mode('gray.50', 'gray.800')(props),
+        color: mode('gray.800', 'white')(props),
       },
     }),
   },

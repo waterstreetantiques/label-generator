@@ -25,7 +25,7 @@
     <meta name="format-detection" content="telephone=no" />
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <title>Product Label Generator</title>
+    <title>Water Street Antiques Label Generator</title>
 
     <!-- GitHub Pages SPA redirect script -->
     <script type="text/javascript">
@@ -44,6 +44,17 @@
     </script>
   </head>
   <body>
+    <!-- Chakra UI ColorModeScript for localStorage persistence -->
+    <script>
+      (function() {
+        try {
+          var chakraColorMode = localStorage.getItem('chakra-ui-color-mode');
+          if (chakraColorMode) {
+            document.documentElement.setAttribute('data-theme', chakraColorMode);
+          }
+        } catch (e) {}
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
