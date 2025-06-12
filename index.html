@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0" />
 
     <!-- Prevent indexing and crawling -->
     <meta name="robots" content="noindex, nofollow, noarchive, nocache, nosnippet, noimageindex" />
@@ -32,9 +32,15 @@
 
     <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Label Generator" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="white" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="white-translucent" />
 
     <!-- Theme Colors -->
     <meta name="theme-color" content="#3182ce" />
@@ -61,6 +67,31 @@
         }
       }(window.location))
     </script>
+
+    <style>
+      /* Prevent overscroll bounce */
+      html {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+        height: 100%;
+        width: 100%;
+        position: fixed;
+      }
+      body {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+        height: 100%;
+        width: 100%;
+        position: fixed;
+        overflow: hidden;
+      }
+      #root {
+        height: 100%;
+        width: 100%;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    </style>
   </head>
   <body>
     <!-- Chakra UI ColorModeScript for localStorage persistence -->
