@@ -6,6 +6,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <title>Product Label Generator</title>
+    <!-- GitHub Pages SPA redirect script -->
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // https://github.com/rafgraph/spa-github-pages
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+    </script>
     <script type="module" crossorigin src="/label-generator/assets/index-D2Btw1bA.js"></script>
   </head>
   <body>
