@@ -2,8 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '/label-generator/', // Replace with your repository name
   plugins: [react()],
+  base: '/label-generator/',
   server: {
     port: 3000,
   },
