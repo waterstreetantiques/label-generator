@@ -1,0 +1,28 @@
+{
+  "name": "Product Label Generator",
+  "short_name": "Label Generator",
+  "description": "Professional order management and label printing solution",
+  "start_url": "/label-generator/",
+  "display": "standalone",
+  "background_color": "#f7fafc",
+  "theme_color": "#3182ce",
+  "orientation": "any",
+  "scope": "/label-generator/",
+  "icons": [
+    {
+      "src": "/label-generator/favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/label-generator/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+} 
