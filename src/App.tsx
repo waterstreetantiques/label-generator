@@ -6,12 +6,13 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { ProductForm } from './pages/ProductForm';
 import { AdminPage } from './pages/AdminPage';
+import { NotFound } from './pages/NotFound';
 
 function App() {
   return (
     <ChakraProvider>
       <AuthProvider>
-        <Router>
+        <Router basename="/label-generator">
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route
@@ -31,6 +32,7 @@ function App() {
               }
             />
             <Route path="/" element={<Navigate to="/admin" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
       </AuthProvider>
