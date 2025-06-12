@@ -1,0 +1,10 @@
+/* Logo filters for dark mode */
+.logo-light {
+  filter: none;
+  transition: filter 0.2s ease-in-out;
+}
+
+.logo-dark {
+  filter: invert(1) brightness(0.8) contrast(1.2);
+  transition: filter 0.2s ease-in-out;
+} 

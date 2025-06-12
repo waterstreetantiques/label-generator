@@ -167,8 +167,7 @@ export const ProductForm = () => {
   return (
     <Container maxW="container.lg" py={10}>
       <VStack spacing={8}>
-        <HStack width="full" justify="space-between">
-          <Heading>Order & Label Generator</Heading>
+        <HStack width="full" justify="end">
           <HStack spacing={4}>
             <Button onClick={() => navigate('/admin')} colorScheme="gray">
               Admin

@@ -204,8 +204,7 @@ export const AdminPage = () => {
   return (
     <Container maxW="container.xl" py={10}>
       <VStack spacing={6}>
-        <HStack width="full" justify="space-between">
-          <Heading>Admin Dashboard</Heading>
+        <HStack width="full" justify="end">
           <HStack spacing={4}>
             <Button onClick={() => navigate('/form')} colorScheme="blue">
               New Order
