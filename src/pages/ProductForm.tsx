@@ -80,9 +80,11 @@ export const ProductForm = () => {
     e.preventDefault();
     try {
       setLoading(true);
+
       await addDoc(collection(db, 'documents'), {
         ...formData,
         createdAt: new Date(),
+        userEmail: user?.email,
       });
       toast({
         title: 'Success',
@@ -93,12 +95,12 @@ export const ProductForm = () => {
       });
       handlePrint();
     } catch (error) {
-      console.error(error);
+      console.error('Firestore error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add order',
+        description: `Failed to add order: ${error.message}`,
         status: 'error',
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       });
     } finally {
@@ -166,10 +168,15 @@ export const ProductForm = () => {
     <Container maxW="container.lg" py={10}>
       <VStack spacing={8}>
         <HStack width="full" justify="space-between">
-          <Heading>Label Generator</Heading>
-          <Button onClick={handleLogout} leftIcon={<Box as="span" className="material-icons">logout</Box>}>
-            Sign Out
-          </Button>
+          <Heading>Order & Label Generator</Heading>
+          <HStack spacing={4}>
+            <Button onClick={() => navigate('/admin')} colorScheme="gray">
+              Admin
+            </Button>
+            <Button onClick={handleLogout} leftIcon={<Box as="span" className="material-icons">logout</Box>}>
+              Sign Out
+            </Button>
+          </HStack>
         </HStack>
         <Box width="full" p={8} borderWidth={1} borderRadius={8} boxShadow="lg">
           <VStack spacing={4} align="stretch">

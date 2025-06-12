@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { ProductForm } from './pages/ProductForm';
+import { AdminPage } from './pages/AdminPage';
 
 function App() {
   return (
@@ -21,7 +22,15 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/form" replace />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/admin" replace />} />
           </Routes>
         </Router>
       </AuthProvider>

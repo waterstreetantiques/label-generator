@@ -2,8 +2,6 @@ import React from 'react';
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {
   User,
-  signInWithEmailAndPassword,
-  signOut,
   onAuthStateChanged
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
