@@ -21,10 +21,17 @@ import {
   Td,
   IconButton,
   Divider,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  ModalFooter,
 } from '@chakra-ui/react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { useReactToPrint } from 'react-to-print';
 import { Label } from '../components/Label';
 import { useAuth } from '../contexts/AuthContext';
 import { auth } from '../config/firebase';
@@ -71,10 +78,117 @@ export const ProductForm = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const labelRef = useRef<HTMLDivElement>(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
-  const handlePrint = useReactToPrint({
-    content: () => labelRef.current,
-  });
+  const handlePrint = () => {
+    if (!labelRef.current) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: 'Error',
+        description: 'Please allow popups for this site',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const labelContent = labelRef.current.innerHTML;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Label</title>
+          <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+          <style>
+            @page {
+              size: 4in 6in;
+              margin: 1in 0.5in;
+            }
+            body {
+              margin: 0;
+              padding: 0.125in;
+              width: 3.75in;
+              height: 5.75in;
+              overflow: hidden;
+              font-family: Arial, sans-serif;
+              font-size: 12px;
+              line-height: 1.2;
+              color: black;
+              background: white;
+            }
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
+            .chakra-box {
+              border: 2px solid black;
+              border-radius: 8px;
+              padding: 12px;
+              height: 100%;
+              box-sizing: border-box;
+            }
+            .chakra-text {
+              margin: 0;
+            }
+            .chakra-divider {
+              border-color: black;
+              margin: 6px 0;
+            }
+            .chakra-table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            .chakra-table th,
+            .chakra-table td {
+              padding: 4px;
+              font-size: 10px;
+            }
+            .material-icons {
+              font-family: 'Material Icons';
+              font-weight: normal;
+              font-style: normal;
+              font-size: 24px;
+              line-height: 1;
+              letter-spacing: normal;
+              text-transform: none;
+              display: inline-block;
+              white-space: nowrap;
+              word-wrap: normal;
+              direction: ltr;
+              -webkit-font-feature-settings: 'liga';
+              -webkit-font-smoothing: antialiased;
+            }
+          </style>
+        </head>
+        <body>
+          ${labelContent}
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const handleCloseModal = () => {
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+    }
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -367,11 +481,66 @@ export const ProductForm = () => {
           </VStack>
         </Box>
         <div style={{ display: 'none' }}>
-          <div ref={labelRef}>
+          <div ref={labelRef} style={{
+            width: '4in',
+            height: '6in',
+            padding: '0.25in',
+            backgroundColor: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+            boxSizing: 'border-box'
+          }}>
             <Label data={{ ...formData, userEmail: user?.email || undefined }} />
           </div>
         </div>
       </VStack>
+
+      <Modal isOpen={isOpen} onClose={handleCloseModal} size="xl">
+        <ModalOverlay />
+        <ModalContent maxW="800px" h="90vh">
+          <ModalHeader>Print Preview</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody p={0} h="full">
+            {pdfUrl && (
+              <>
+                <iframe
+                  src={pdfUrl}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none'
+                  }}
+                />
+                <style>
+                  {`
+                    @media print {
+                      body * {
+                        visibility: hidden;
+                      }
+                      iframe, iframe * {
+                        visibility: visible;
+                      }
+                      iframe {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        height: 100%;
+                      }
+                    }
+                  `}
+                </style>
+              </>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={() => window.print()} colorScheme="blue" mr={3}>
+              Print
+            </Button>
+            <Button onClick={handleCloseModal}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Container>
   );
 };

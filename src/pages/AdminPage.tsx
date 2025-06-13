@@ -43,7 +43,6 @@ import { db } from '../config/firebase';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { Label } from '../components/Label';
-import { useReactToPrint } from 'react-to-print';
 
 interface ItemPurchased {
   itemNumber: string;
@@ -81,21 +80,106 @@ export const AdminPage = () => {
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
 
-  const handlePrint = useReactToPrint({
-    content: () => labelRef.current,
-    onBeforeGetContent: () => {
-      // Ensure the label is visible before printing
-      if (labelRef.current) {
-        labelRef.current.style.display = 'block';
-      }
-    },
-    onAfterPrint: () => {
-      // Hide the label after printing
-      if (labelRef.current) {
-        labelRef.current.style.display = 'none';
-      }
+  const handlePrint = () => {
+    if (!labelRef.current) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: 'Error',
+        description: 'Please allow popups for this site',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
     }
-  });
+
+    const labelContent = labelRef.current.innerHTML;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Label</title>
+          <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+          <style>
+            @page {
+              size: 4in 6in;
+              margin: 1in 0.5in;
+            }
+            body {
+              margin: 0;
+              padding: 0.125in;
+              width: 3.75in;
+              height: 5.75in;
+              overflow: hidden;
+              font-family: Arial, sans-serif;
+              font-size: 12px;
+              line-height: 1.2;
+              color: black;
+              background: white;
+            }
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
+            .chakra-box {
+              border: 2px solid black;
+              border-radius: 8px;
+              padding: 12px;
+              height: 100%;
+              box-sizing: border-box;
+            }
+            .chakra-text {
+              margin: 0;
+            }
+            .chakra-divider {
+              border-color: black;
+              margin: 6px 0;
+            }
+            .chakra-table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            .chakra-table th,
+            .chakra-table td {
+              padding: 4px;
+              font-size: 10px;
+            }
+            .material-icons {
+              font-family: 'Material Icons';
+              font-weight: normal;
+              font-style: normal;
+              font-size: 24px;
+              line-height: 1;
+              letter-spacing: normal;
+              text-transform: none;
+              display: inline-block;
+              white-space: nowrap;
+              word-wrap: normal;
+              direction: ltr;
+              -webkit-font-feature-settings: 'liga';
+              -webkit-font-smoothing: antialiased;
+            }
+          </style>
+        </head>
+        <body>
+          ${labelContent}
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
 
   useEffect(() => {
     fetchDocuments();

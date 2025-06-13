@@ -29,8 +29,6 @@ export const Label = ({ data }: LabelProps) => {
       p={4}
       borderWidth={2}
       borderRadius={8}
-      width="4in"
-      height="6in"
       position="relative"
       bg="white"
       color="black"
