@@ -2,7 +2,7 @@
 const printLabelStyles = `
   @page {
     size: 4in 6in;
-    margin: 1in 0.5in;
+    margin: 0.75in 0;
   }
   body {
     margin: 0;
@@ -23,8 +23,12 @@ const printLabelStyles = `
     }
   }
   .label-header {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
+    line-height: 1.5;
+  }
+  .label-small {
+    font-size: 12px;
     line-height: 1.5;
   }
   .chakra-box {
@@ -44,11 +48,13 @@ const printLabelStyles = `
   .chakra-table {
     width: 100%;
     border-collapse: collapse;
+    text-align:left;
+    line-height: 1.5;
   }
   .chakra-table th,
   .chakra-table td {
-    padding: 4px;
-    font-size: 10px;
+    padding: 0px;
+    font-size: 14px;
   }
   .material-icons {
     font-family: 'Material Icons';
@@ -67,4 +73,4 @@ const printLabelStyles = `
   }
 `;
 
-export default printLabelStyles; 
+export default printLabelStyles;

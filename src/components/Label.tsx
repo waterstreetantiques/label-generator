@@ -42,7 +42,7 @@ export const Label = ({ data }: LabelProps) => {
     >
       <VStack spacing={2} align="stretch" height="100%">
         {/* Header */}
-        <Text fontWeight="bold" textAlign="center" mb={1}>
+        <Text fontWeight="bold" textAlign="center" mb={1} className='label-header'>
           ORDER LABEL
         </Text>
         <Divider borderWidth={1} mb={2} />
@@ -53,13 +53,16 @@ export const Label = ({ data }: LabelProps) => {
             Customer: {data.firstName} {data.lastName}
           </Text>
           <HStack justify="space-between">
-            <Text>Invoice #: {data.invoiceNumber}</Text>
             <Text>Date: {data.dateOfPurchase}</Text>
+            <Text>Invoice #: {data.invoiceNumber}</Text>
           </HStack>
           {data.userEmail && (
-            <Text color="gray.600">
-              Created by: {data.userEmail}
-            </Text>
+            <>
+              <Text color="gray.600" className='label-small'>
+                Created by
+              </Text>
+              <Text color="gray.600" className='label-small'>{data.userEmail}</Text>
+            </>
           )}
         </VStack>
 
@@ -67,8 +70,8 @@ export const Label = ({ data }: LabelProps) => {
 
         {/* Fulfillment Details */}
         <VStack spacing={1} align="stretch">
-          <Text fontWeight="bold">
-            {data.isPickup ? 'PICKUP' : 'DELIVERY'}
+          <Text fontWeight="bold" className='label-header'>
+            {data.isPickup ? 'Pickup' : 'Delivery'}
           </Text>
           {data.isPickup && data.estimatedPickupDate && (
             <Text>Estimated Pickup: {data.estimatedPickupDate}</Text>
@@ -79,7 +82,10 @@ export const Label = ({ data }: LabelProps) => {
                 <Text>Delivery Date: {data.deliveryDate}</Text>
               )}
               {data.deliveryAddress && (
-                <Text>Address: {data.deliveryAddress}</Text>
+                <>
+                  <Text className='label-header'>Address</Text>
+                  <Text>{data.deliveryAddress}</Text>
+                </>
               )}
             </>
           )}
@@ -89,7 +95,6 @@ export const Label = ({ data }: LabelProps) => {
 
         {/* Items Purchased */}
         <VStack spacing={1} align="stretch" flex={1}>
-          <Text fontWeight="bold">Items Purchased:</Text>
           <Table size="sm" variant="simple">
             <Thead>
               <Tr>
@@ -111,7 +116,7 @@ export const Label = ({ data }: LabelProps) => {
         </VStack>
 
         <Box position="absolute" bottom={2} left={2} right={2}>
-          <Text textAlign="center" color="gray.600">
+          <Text textAlign="left" color="gray.600" className='label-small'>
             Generated: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
           </Text>
         </Box>
