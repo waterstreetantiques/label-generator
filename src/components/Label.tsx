@@ -32,8 +32,6 @@ export const Label = ({ data }: LabelProps) => {
       position="relative"
       bg="white"
       color="black"
-      fontSize="12px"
-      lineHeight="1.2"
       fontFamily="Arial, sans-serif"
       style={{
         pageBreakAfter: 'always',
@@ -44,7 +42,7 @@ export const Label = ({ data }: LabelProps) => {
     >
       <VStack spacing={2} align="stretch" height="100%">
         {/* Header */}
-        <Text fontSize="16px" fontWeight="bold" textAlign="center" mb={1}>
+        <Text fontWeight="bold" textAlign="center" mb={1}>
           ORDER LABEL
         </Text>
         <Divider borderWidth={1} mb={2} />
@@ -59,7 +57,7 @@ export const Label = ({ data }: LabelProps) => {
             <Text>Date: {data.dateOfPurchase}</Text>
           </HStack>
           {data.userEmail && (
-            <Text fontSize="10px" color="gray.600">
+            <Text color="gray.600">
               Created by: {data.userEmail}
             </Text>
           )}
@@ -81,7 +79,7 @@ export const Label = ({ data }: LabelProps) => {
                 <Text>Delivery Date: {data.deliveryDate}</Text>
               )}
               {data.deliveryAddress && (
-                <Text fontSize="10px">Address: {data.deliveryAddress}</Text>
+                <Text>Address: {data.deliveryAddress}</Text>
               )}
             </>
           )}
@@ -95,17 +93,17 @@ export const Label = ({ data }: LabelProps) => {
           <Table size="sm" variant="simple">
             <Thead>
               <Tr>
-                <Th p={1} fontSize="10px">Item #</Th>
-                <Th p={1} fontSize="10px">Description</Th>
-                <Th p={1} fontSize="10px" textAlign="right">Qty</Th>
+                <Th p={1}>Item #</Th>
+                <Th p={1}>Description</Th>
+                <Th p={1} textAlign="right">Qty</Th>
               </Tr>
             </Thead>
             <Tbody>
               {data.itemsPurchased?.map((item, index) => (
                 <Tr key={index}>
-                  <Td p={1} fontSize="10px">{item.itemNumber}</Td>
-                  <Td p={1} fontSize="10px">{item.description}</Td>
-                  <Td p={1} fontSize="10px" textAlign="right">{item.qty}</Td>
+                  <Td p={1}>{item.itemNumber}</Td>
+                  <Td p={1}>{item.description}</Td>
+                  <Td p={1} textAlign="right">{item.qty}</Td>
                 </Tr>
               ))}
             </Tbody>
@@ -113,7 +111,7 @@ export const Label = ({ data }: LabelProps) => {
         </VStack>
 
         <Box position="absolute" bottom={2} left={2} right={2}>
-          <Text fontSize="10px" textAlign="center" color="gray.600">
+          <Text textAlign="center" color="gray.600">
             Generated: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
           </Text>
         </Box>

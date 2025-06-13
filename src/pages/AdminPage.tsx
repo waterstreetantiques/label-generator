@@ -43,6 +43,7 @@ import { db } from '../config/firebase';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { Label } from '../components/Label';
+import printLabelStyles from '../printLabelStyles';
 
 interface ItemPurchased {
   itemNumber: string;
@@ -74,6 +75,10 @@ export const AdminPage = () => {
   const [selectedDoc, setSelectedDoc] = useState<DocumentData | null>(null);
   const [editData, setEditData] = useState<Partial<DocumentData>>({});
   const labelRef = useRef<HTMLDivElement>(null);
+  const [pickupDateFilter, setPickupDateFilter] = useState('');
+  const [deliveryDateFilter, setDeliveryDateFilter] = useState('');
+  const [sortField, setSortField] = useState<'name' | 'fulfillment'>('fulfillment');
+  const [sortAsc, setSortAsc] = useState(true);
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
@@ -103,66 +108,7 @@ export const AdminPage = () => {
           <title>Print Label</title>
           <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
           <style>
-            @page {
-              size: 4in 6in;
-              margin: 1in 0.5in;
-            }
-            body {
-              margin: 0;
-              padding: 0.125in;
-              width: 3.75in;
-              height: 5.75in;
-              overflow: hidden;
-              font-family: Arial, sans-serif;
-              font-size: 12px;
-              line-height: 1.2;
-              color: black;
-              background: white;
-            }
-            @media print {
-              body {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-            }
-            .chakra-box {
-              border: 2px solid black;
-              border-radius: 8px;
-              padding: 12px;
-              height: 100%;
-              box-sizing: border-box;
-            }
-            .chakra-text {
-              margin: 0;
-            }
-            .chakra-divider {
-              border-color: black;
-              margin: 6px 0;
-            }
-            .chakra-table {
-              width: 100%;
-              border-collapse: collapse;
-            }
-            .chakra-table th,
-            .chakra-table td {
-              padding: 4px;
-              font-size: 10px;
-            }
-            .material-icons {
-              font-family: 'Material Icons';
-              font-weight: normal;
-              font-style: normal;
-              font-size: 24px;
-              line-height: 1;
-              letter-spacing: normal;
-              text-transform: none;
-              display: inline-block;
-              white-space: nowrap;
-              word-wrap: normal;
-              direction: ltr;
-              -webkit-font-feature-settings: 'liga';
-              -webkit-font-smoothing: antialiased;
-            }
+            ${printLabelStyles}
           </style>
         </head>
         <body>
@@ -297,6 +243,43 @@ export const AdminPage = () => {
     onViewOpen();
   };
 
+  // Filtering logic
+  const filteredDocuments = documents.filter(doc => {
+    let pickupMatch = true;
+    let deliveryMatch = true;
+    if (pickupDateFilter) {
+      pickupMatch = doc.isPickup && doc.estimatedPickupDate === pickupDateFilter;
+    }
+    if (deliveryDateFilter) {
+      deliveryMatch = doc.isDelivery && doc.deliveryDate === deliveryDateFilter;
+    }
+    if (pickupDateFilter && deliveryDateFilter) {
+      return (
+        (doc.isPickup && doc.estimatedPickupDate === pickupDateFilter) ||
+        (doc.isDelivery && doc.deliveryDate === deliveryDateFilter)
+      );
+    }
+    return pickupMatch && deliveryMatch;
+  });
+
+  // Sorting logic
+  const sortedDocuments = [...filteredDocuments].sort((a, b) => {
+    if (sortField === 'name') {
+      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+      if (nameA < nameB) return sortAsc ? -1 : 1;
+      if (nameA > nameB) return sortAsc ? 1 : -1;
+      return 0;
+    } else {
+      // Fulfillment date: prefer deliveryDate if delivery, else pickup
+      const dateA = a.isDelivery && a.deliveryDate ? a.deliveryDate : a.estimatedPickupDate || '';
+      const dateB = b.isDelivery && b.deliveryDate ? b.deliveryDate : b.estimatedPickupDate || '';
+      if (dateA < dateB) return sortAsc ? -1 : 1;
+      if (dateA > dateB) return sortAsc ? 1 : -1;
+      return 0;
+    }
+  });
+
   if (loading) {
     return (
       <Container maxW="container.xl" py={10}>
@@ -322,16 +305,55 @@ export const AdminPage = () => {
           </HStack>
         </HStack>
 
+        {/* Filter Controls */}
+        <HStack spacing={6} width="full" align="center">
+          <FormControl maxW="200px">
+            <FormLabel fontSize="sm">Pickup Date</FormLabel>
+            <Input
+              type="date"
+              value={pickupDateFilter}
+              onChange={e => setPickupDateFilter(e.target.value)}
+              size="sm"
+            />
+          </FormControl>
+          <FormControl maxW="200px">
+            <FormLabel fontSize="sm">Delivery Date</FormLabel>
+            <Input
+              type="date"
+              value={deliveryDateFilter}
+              onChange={e => setDeliveryDateFilter(e.target.value)}
+              size="sm"
+            />
+          </FormControl>
+          {(pickupDateFilter || deliveryDateFilter) && (
+            <Button size="md" onClick={() => { setPickupDateFilter(''); setDeliveryDateFilter(''); }} style={{ marginTop: '25px' }}>Clear Filters</Button>
+          )}
+          <FormControl maxW="200px">
+            <FormLabel fontSize="sm">Sort By</FormLabel>
+            <select
+              value={sortField}
+              onChange={e => setSortField(e.target.value as 'name' | 'fulfillment')}
+              style={{ padding: '6px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }}
+            >
+              <option value="fulfillment">Fulfillment Date</option>
+              <option value="name">Name</option>
+            </select>
+          </FormControl>
+          <Button size="md" onClick={() => setSortAsc(a => !a)} style={{ marginTop: '25px' }}>
+            {sortAsc ? 'Asc' : 'Desc'}
+          </Button>
+        </HStack>
+
         <Box width="full" p={6} borderWidth={1} borderRadius={8} boxShadow="lg">
           <VStack spacing={4}>
             <HStack width="full" justify="space-between">
-              <Heading size="md">Orders ({documents.length})</Heading>
+              <Heading size="md">Orders ({sortedDocuments.length})</Heading>
               <Button onClick={fetchDocuments} size="sm">
                 Refresh
               </Button>
             </HStack>
 
-            {documents.length === 0 ? (
+            {sortedDocuments.length === 0 ? (
               <Text>No documents found</Text>
             ) : (
               <Box width="full" overflowX="auto">
@@ -343,14 +365,14 @@ export const AdminPage = () => {
                       <Th>Purchase Date</Th>
                       <Th>Type</Th>
                       <Th>Items</Th>
-                      <Th>Created</Th>
+                      <Th>Fulfillment Date</Th>
                       <Th>Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {documents.map((doc) => (
+                    {sortedDocuments.map((doc) => (
                       <Tr key={doc.id}>
-                        <Td>{doc.firstName} {doc.lastName}</Td>
+                        <Td>{`${doc.firstName} ${doc.lastName}`}</Td>
                         <Td>{doc.invoiceNumber}</Td>
                         <Td>{doc.dateOfPurchase}</Td>
                         <Td>
@@ -359,7 +381,10 @@ export const AdminPage = () => {
                           </Badge>
                         </Td>
                         <Td>{doc.itemsPurchased?.length || 0}</Td>
-                        <Td>{formatDate(doc.createdAt)}</Td>
+                        <Td>
+                          {doc.isPickup && doc.estimatedPickupDate ? doc.estimatedPickupDate : ''}
+                          {doc.isDelivery && doc.deliveryDate ? doc.deliveryDate : ''}
+                        </Td>
                         <Td>
                           <HStack spacing={2}>
                             <IconButton
@@ -438,14 +463,14 @@ export const AdminPage = () => {
                   <FormLabel>First Name</FormLabel>
                   <Input
                     value={editData.firstName || ''}
-                    onChange={(e) => setEditData({...editData, firstName: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
                   />
                 </FormControl>
                 <FormControl>
                   <FormLabel>Last Name</FormLabel>
                   <Input
                     value={editData.lastName || ''}
-                    onChange={(e) => setEditData({...editData, lastName: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
                   />
                 </FormControl>
               </HStack>
@@ -455,7 +480,7 @@ export const AdminPage = () => {
                   <FormLabel>Invoice #</FormLabel>
                   <Input
                     value={editData.invoiceNumber || ''}
-                    onChange={(e) => setEditData({...editData, invoiceNumber: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, invoiceNumber: e.target.value })}
                   />
                 </FormControl>
                 <FormControl>
@@ -463,7 +488,7 @@ export const AdminPage = () => {
                   <Input
                     type="date"
                     value={editData.dateOfPurchase || ''}
-                    onChange={(e) => setEditData({...editData, dateOfPurchase: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, dateOfPurchase: e.target.value })}
                   />
                 </FormControl>
               </HStack>
@@ -497,7 +522,7 @@ export const AdminPage = () => {
                   <Input
                     type="date"
                     value={editData.estimatedPickupDate || ''}
-                    onChange={(e) => setEditData({...editData, estimatedPickupDate: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, estimatedPickupDate: e.target.value })}
                   />
                 </FormControl>
               )}
@@ -509,14 +534,14 @@ export const AdminPage = () => {
                     <Input
                       type="date"
                       value={editData.deliveryDate || ''}
-                      onChange={(e) => setEditData({...editData, deliveryDate: e.target.value})}
+                      onChange={(e) => setEditData({ ...editData, deliveryDate: e.target.value })}
                     />
                   </FormControl>
                   <FormControl>
                     <FormLabel>Delivery Address</FormLabel>
                     <Textarea
                       value={editData.deliveryAddress || ''}
-                      onChange={(e) => setEditData({...editData, deliveryAddress: e.target.value})}
+                      onChange={(e) => setEditData({ ...editData, deliveryAddress: e.target.value })}
                     />
                   </FormControl>
                 </VStack>
@@ -617,9 +642,11 @@ export const AdminPage = () => {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" onClick={handlePrint} mr={3}>
-              Print Label
-            </Button>
+            {selectedDoc && (
+              <Button colorScheme="blue" onClick={handlePrint} mr={3}>
+                Print Label
+              </Button>
+            )}
             <Button onClick={onViewClose}>Close</Button>
           </ModalFooter>
         </ModalContent>
