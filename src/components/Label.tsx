@@ -20,6 +20,7 @@ interface LabelProps {
     deliveryAddress: string;
     itemsPurchased: ItemPurchased[];
     userEmail?: string;
+    notes?: string;
   };
 }
 
@@ -114,6 +115,12 @@ export const Label = ({ data }: LabelProps) => {
             </Tbody>
           </Table>
         </VStack>
+        {data.notes && (
+          <Box mt={2} p={2} borderWidth={1} borderRadius={4} bg="gray.50">
+            <Text fontWeight="bold" fontSize="sm" className='label-header'>Notes:</Text>
+            <Text fontSize="sm">{data.notes}</Text>
+          </Box>
+        )}
 
         <Box position="absolute" bottom={2} left={2} right={2}>
           <Text textAlign="left" color="gray.600" className='label-small'>

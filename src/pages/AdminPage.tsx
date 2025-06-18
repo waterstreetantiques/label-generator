@@ -65,6 +65,7 @@ interface DocumentData {
   itemsPurchased: ItemPurchased[];
   createdAt: any;
   userEmail: string;
+  notes?: string;
 }
 
 export const AdminPage = () => {
@@ -546,6 +547,15 @@ export const AdminPage = () => {
                   </FormControl>
                 </VStack>
               )}
+
+              <FormControl>
+                <FormLabel>Notes</FormLabel>
+                <Textarea
+                  value={editData.notes || ''}
+                  onChange={e => setEditData({ ...editData, notes: e.target.value })}
+                  placeholder="Enter any notes for this order (optional)"
+                />
+              </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>
@@ -617,6 +627,11 @@ export const AdminPage = () => {
                   </FormControl>
                 </VStack>
               )}
+
+              <FormControl>
+                <FormLabel>Notes</FormLabel>
+                <Textarea value={selectedDoc?.notes || ''} isReadOnly />
+              </FormControl>
 
               <Box width="full">
                 <Heading size="sm" mb={2}>Items Purchased</Heading>

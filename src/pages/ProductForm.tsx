@@ -55,6 +55,7 @@ interface ProductData {
   deliveryDate: string;
   deliveryAddress: string;
   itemsPurchased: ItemPurchased[];
+  notes?: string;
 }
 
 export const ProductForm = () => {
@@ -72,6 +73,7 @@ export const ProductForm = () => {
     itemsPurchased: [
       { itemNumber: '', description: '', qty: '' }
     ],
+    notes: '',
   };
 
   const [formData, setFormData] = useState<ProductData>(initialFormData);
@@ -398,6 +400,18 @@ export const ProductForm = () => {
                     </Tbody>
                   </Table>
                 </VStack>
+
+                <Divider />
+
+                <FormControl>
+                  <FormLabel>Notes</FormLabel>
+                  <Textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    placeholder="Enter any notes for this order (optional)"
+                  />
+                </FormControl>
 
                 <Divider />
 
