@@ -226,16 +226,6 @@ export const ProductForm = () => {
   return (
     <Container maxW="container.lg" py={10}>
       <VStack spacing={8}>
-        <HStack width="full" justify="end">
-          <HStack spacing={4}>
-            <Button onClick={() => navigate('/admin')} colorScheme="gray">
-              Admin
-            </Button>
-            <Button onClick={handleLogout} leftIcon={<Box as="span" className="material-icons">logout</Box>}>
-              Sign Out
-            </Button>
-          </HStack>
-        </HStack>
         <Box width="full" p={8} borderWidth={1} borderRadius={8} boxShadow="lg">
           <VStack spacing={4} align="stretch">
             <form onSubmit={handleSubmit}>
