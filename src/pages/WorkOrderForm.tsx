@@ -165,19 +165,11 @@ const WorkOrderForm = () => {
                     <HStack spacing={4} width="full">
                       <FormControl isRequired>
                         <FormLabel>Location</FormLabel>
-                        <Select name="location" value={form.location} onChange={handleChange} placeholder="Select location">
-                          {locations.map((loc) => (
-                            <option key={loc} value={loc}>{loc}</option>
-                          ))}
-                        </Select>
+                        <Input name="location" value={form.location} onChange={handleChange} placeholder="Enter location" />
                       </FormControl>
                       <FormControl isRequired>
                         <FormLabel>Who Should Repair</FormLabel>
-                        <Select name="whoShouldRepair" value={form.whoShouldRepair} onChange={handleChange} placeholder="Select person">
-                          {repairPeople.map((person) => (
-                            <option key={person} value={person}>{person}</option>
-                          ))}
-                        </Select>
+                        <Input name="whoShouldRepair" value={form.whoShouldRepair} onChange={handleChange} placeholder="Enter person name" />
                       </FormControl>
                     </HStack>
 
