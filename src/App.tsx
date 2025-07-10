@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChakraProvider, Box, Image, Container, HStack, Button, useColorModeValue, VStack } from '@chakra-ui/react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { ProductForm } from './pages/ProductForm';
@@ -16,6 +16,7 @@ const AppHeader = () => {
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const logoClass = useColorModeValue('logo-light', 'logo-dark');
   const location = useLocation();
+  const { user } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -33,35 +34,37 @@ const AppHeader = () => {
                 objectFit="contain"
                 className={logoClass}
               />
-              <HStack spacing={2}>
-                <Button
-                  as={Link}
-                  to="/admin"
-                  variant={isActive('/admin') ? 'solid' : 'ghost'}
-                  colorScheme={isActive('/admin') ? 'blue' : 'gray'}
-                  size="sm"
-                >
-                  Admin
-                </Button>
-                <Button
-                  as={Link}
-                  to="/form"
-                  variant={isActive('/form') ? 'solid' : 'ghost'}
-                  colorScheme={isActive('/form') ? 'blue' : 'gray'}
-                  size="sm"
-                >
-                  Product Form
-                </Button>
-                <Button
-                  as={Link}
-                  to="/work-order"
-                  variant={isActive('/work-order') ? 'solid' : 'ghost'}
-                  colorScheme={isActive('/work-order') ? 'blue' : 'gray'}
-                  size="sm"
-                >
-                  Work Order
-                </Button>
-              </HStack>
+              {user && (
+                <HStack spacing={2}>
+                  <Button
+                    as={Link}
+                    to="/admin"
+                    variant={isActive('/admin') ? 'solid' : 'ghost'}
+                    colorScheme={isActive('/admin') ? 'blue' : 'gray'}
+                    size="sm"
+                  >
+                    Admin
+                  </Button>
+                  <Button
+                    as={Link}
+                    to="/form"
+                    variant={isActive('/form') ? 'solid' : 'ghost'}
+                    colorScheme={isActive('/form') ? 'blue' : 'gray'}
+                    size="sm"
+                  >
+                    Product Form
+                  </Button>
+                  <Button
+                    as={Link}
+                    to="/work-order"
+                    variant={isActive('/work-order') ? 'solid' : 'ghost'}
+                    colorScheme={isActive('/work-order') ? 'blue' : 'gray'}
+                    size="sm"
+                  >
+                    Work Order
+                  </Button>
+                </HStack>
+              )}
             </HStack>
             <ColorModeToggle />
           </HStack>
@@ -78,41 +81,43 @@ const AppHeader = () => {
               />
               <ColorModeToggle />
             </HStack>
-            <HStack spacing={1} width="full" justify="center" flexWrap="wrap">
-              <Button
-                as={Link}
-                to="/admin"
-                variant={isActive('/admin') ? 'solid' : 'ghost'}
-                colorScheme={isActive('/admin') ? 'blue' : 'gray'}
-                size="xs"
-                fontSize="xs"
-                px={2}
-              >
-                Admin
-              </Button>
-              <Button
-                as={Link}
-                to="/form"
-                variant={isActive('/form') ? 'solid' : 'ghost'}
-                colorScheme={isActive('/form') ? 'blue' : 'gray'}
-                size="xs"
-                fontSize="xs"
-                px={2}
-              >
-                Product Form
-              </Button>
-              <Button
-                as={Link}
-                to="/work-order"
-                variant={isActive('/work-order') ? 'solid' : 'ghost'}
-                colorScheme={isActive('/work-order') ? 'blue' : 'gray'}
-                size="xs"
-                fontSize="xs"
-                px={2}
-              >
-                Work Order
-              </Button>
-            </HStack>
+            {user && (
+              <HStack spacing={1} width="full" justify="center" flexWrap="wrap">
+                <Button
+                  as={Link}
+                  to="/admin"
+                  variant={isActive('/admin') ? 'solid' : 'ghost'}
+                  colorScheme={isActive('/admin') ? 'blue' : 'gray'}
+                  size="xs"
+                  fontSize="xs"
+                  px={2}
+                >
+                  Admin
+                </Button>
+                <Button
+                  as={Link}
+                  to="/form"
+                  variant={isActive('/form') ? 'solid' : 'ghost'}
+                  colorScheme={isActive('/form') ? 'blue' : 'gray'}
+                  size="xs"
+                  fontSize="xs"
+                  px={2}
+                >
+                  Product Form
+                </Button>
+                <Button
+                  as={Link}
+                  to="/work-order"
+                  variant={isActive('/work-order') ? 'solid' : 'ghost'}
+                  colorScheme={isActive('/work-order') ? 'blue' : 'gray'}
+                  size="xs"
+                  fontSize="xs"
+                  px={2}
+                >
+                  Work Order
+                </Button>
+              </HStack>
+            )}
           </VStack>
         </VStack>
       </Container>
