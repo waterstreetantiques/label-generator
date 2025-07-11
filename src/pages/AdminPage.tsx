@@ -90,6 +90,7 @@ export const AdminPage = () => {
   const [sortAsc, setSortAsc] = useState(true);
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const { isOpen: isWorkOrderDeleteOpen, onOpen: onWorkOrderDeleteOpen, onClose: onWorkOrderDeleteClose } = useDisclosure();
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
   const { isOpen: isWorkOrderEditOpen, onOpen: onWorkOrderEditOpen, onClose: onWorkOrderEditClose } = useDisclosure();
@@ -211,6 +212,32 @@ export const AdminPage = () => {
     }
   };
 
+  const handleWorkOrderDelete = async () => {
+    if (!selectedWorkOrder) return;
+
+    try {
+      await deleteDoc(doc(db, 'work-orders', selectedWorkOrder.id));
+      setWorkOrders(orders => orders.filter(o => o.id !== selectedWorkOrder.id));
+      toast({
+        title: 'Success',
+        description: 'Work order deleted successfully',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      onWorkOrderDeleteClose();
+    } catch (error) {
+      console.error('Error deleting work order:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete work order',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   const handleEdit = (document: DocumentData) => {
     setSelectedDoc(document);
     setEditData({ ...document });
@@ -277,6 +304,11 @@ export const AdminPage = () => {
   const handleDeleteClick = (document: DocumentData) => {
     setSelectedDoc(document);
     onDeleteOpen();
+  };
+
+  const handleWorkOrderDeleteClick = (workOrder: any) => {
+    setSelectedWorkOrder(workOrder);
+    onWorkOrderDeleteOpen();
   };
 
   // Filtering logic
@@ -356,9 +388,9 @@ export const AdminPage = () => {
   const markWorkOrderComplete = async (workOrder: any) => {
     try {
       const docRef = doc(db, 'work-orders', workOrder.id);
-      await updateDoc(docRef, { 
-        completed: true, 
-        completedAt: new Date() 
+      await updateDoc(docRef, {
+        completed: true,
+        completedAt: new Date()
       });
 
       setWorkOrders(orders =>
@@ -623,6 +655,15 @@ export const AdminPage = () => {
                                 Mark Complete
                               </Button>
                             )}
+                            {workOrder.completed && (
+                              <IconButton
+                                aria-label="Delete work order"
+                                icon={<Box as="span" className="material-icons">delete</Box>}
+                                size="sm"
+                                colorScheme="red"
+                                onClick={() => handleWorkOrderDeleteClick(workOrder)}
+                              />
+                            )}
                           </HStack>
                         </Td>
                       </Tr>
@@ -654,6 +695,33 @@ export const AdminPage = () => {
                   Cancel
                 </Button>
                 <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                  Delete
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
+
+        {/* Work Order Delete Confirmation Dialog */}
+        <AlertDialog
+          isOpen={isWorkOrderDeleteOpen}
+          leastDestructiveRef={cancelRef}
+          onClose={onWorkOrderDeleteClose}
+        >
+          <AlertDialogOverlay>
+            <AlertDialogContent>
+              <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                Delete Work Order
+              </AlertDialogHeader>
+              <AlertDialogBody>
+                Are you sure you want to delete this completed work order?
+                This action cannot be undone.
+              </AlertDialogBody>
+              <AlertDialogFooter>
+                <Button ref={cancelRef} onClick={onWorkOrderDeleteClose}>
+                  Cancel
+                </Button>
+                <Button colorScheme="red" onClick={handleWorkOrderDelete} ml={3}>
                   Delete
                 </Button>
               </AlertDialogFooter>
@@ -969,8 +1037,8 @@ export const AdminPage = () => {
                   <FormLabel>Status</FormLabel>
                   <Checkbox
                     isChecked={editWorkOrderData.completed || false}
-                    onChange={(e) => setEditWorkOrderData({ 
-                      ...editWorkOrderData, 
+                    onChange={(e) => setEditWorkOrderData({
+                      ...editWorkOrderData,
                       completed: e.target.checked,
                       completedAt: e.target.checked ? new Date() : null
                     })}
