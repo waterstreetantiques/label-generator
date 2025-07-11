@@ -48,6 +48,7 @@ import { db } from '../config/firebase';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { Label } from '../components/Label';
+import { WorkOrderLabel } from '../components/WorkOrderLabel';
 import printLabelStyles from '../printLabelStyles';
 
 interface ItemPurchased {
@@ -84,6 +85,7 @@ export const AdminPage = () => {
   const [editData, setEditData] = useState<Partial<DocumentData>>({});
   const [editWorkOrderData, setEditWorkOrderData] = useState<any>({});
   const labelRef = useRef<HTMLDivElement>(null);
+  const workOrderLabelRef = useRef<HTMLDivElement>(null);
   const [pickupDateFilter, setPickupDateFilter] = useState('');
   const [deliveryDateFilter, setDeliveryDateFilter] = useState('');
   const [sortField, setSortField] = useState<'name' | 'fulfillment'>('fulfillment');
@@ -94,6 +96,7 @@ export const AdminPage = () => {
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
   const { isOpen: isWorkOrderEditOpen, onOpen: onWorkOrderEditOpen, onClose: onWorkOrderEditClose } = useDisclosure();
+  const { isOpen: isWorkOrderViewOpen, onOpen: onWorkOrderViewOpen, onClose: onWorkOrderViewClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
 
   const handlePrint = () => {
@@ -117,6 +120,48 @@ export const AdminPage = () => {
       <html>
         <head>
           <title>Print Label</title>
+          <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+          <style>
+            ${printLabelStyles}
+          </style>
+        </head>
+        <body>
+          ${labelContent}
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const handleWorkOrderPrint = () => {
+    if (!workOrderLabelRef.current) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: 'Error',
+        description: 'Please allow popups for this site',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const labelContent = workOrderLabelRef.current.innerHTML;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Work Order</title>
           <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
           <style>
             ${printLabelStyles}
@@ -299,6 +344,11 @@ export const AdminPage = () => {
   const handleView = (document: DocumentData) => {
     setSelectedDoc(document);
     onViewOpen();
+  };
+
+  const handleWorkOrderView = (workOrder: any) => {
+    setSelectedWorkOrder(workOrder);
+    onWorkOrderViewOpen();
   };
 
   const handleDeleteClick = (document: DocumentData) => {
@@ -641,9 +691,17 @@ export const AdminPage = () => {
                         <Td>
                           <HStack spacing={2}>
                             <IconButton
+                              aria-label="View work order"
+                              icon={<Box as="span" className="material-icons">visibility</Box>}
+                              size="sm"
+                              colorScheme="blue"
+                              onClick={() => handleWorkOrderView(workOrder)}
+                            />
+                            <IconButton
                               aria-label="Edit work order"
                               icon={<Box as="span" className="material-icons">edit</Box>}
                               size="sm"
+                              colorScheme="blue"
                               onClick={() => handleWorkOrderEdit(workOrder)}
                             />
                             {!workOrder.completed && (
@@ -945,6 +1003,101 @@ export const AdminPage = () => {
           </ModalContent>
         </Modal>
 
+        {/* Work Order View Modal */}
+        <Modal isOpen={isWorkOrderViewOpen} onClose={onWorkOrderViewClose} size="xl">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>View Work Order</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={4}>
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Type</FormLabel>
+                    <Text>
+                      {selectedWorkOrder?.isPurchased ? 'Purchased Item' : 'Item on Floor'}
+                    </Text>
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Status</FormLabel>
+                    <Badge colorScheme={selectedWorkOrder?.completed ? 'green' : 'yellow'}>
+                      {selectedWorkOrder?.completed ? 'Completed' : 'Pending'}
+                    </Badge>
+                  </FormControl>
+                </HStack>
+
+                {selectedWorkOrder?.isPurchased ? (
+                  <>
+                    <HStack spacing={4} width="full">
+                      <FormControl>
+                        <FormLabel>Name</FormLabel>
+                        <Input value={selectedWorkOrder?.name || ''} isReadOnly />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel>Phone</FormLabel>
+                        <Input value={selectedWorkOrder?.phone || ''} isReadOnly />
+                      </FormControl>
+                    </HStack>
+                    <HStack spacing={4} width="full">
+                      <FormControl>
+                        <FormLabel>Invoice #</FormLabel>
+                        <Input value={selectedWorkOrder?.invoice || ''} isReadOnly />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel>Date of Purchase</FormLabel>
+                        <Input value={selectedWorkOrder?.dateOfPurchase || ''} isReadOnly />
+                      </FormControl>
+                    </HStack>
+                    <FormControl>
+                      <FormLabel>Estimated Completion</FormLabel>
+                      <Input value={selectedWorkOrder?.estimatedCompletion || ''} isReadOnly />
+                    </FormControl>
+                  </>
+                ) : (
+                  <>
+                    <HStack spacing={4} width="full">
+                      <FormControl>
+                        <FormLabel>Location</FormLabel>
+                        <Input value={selectedWorkOrder?.location || ''} isReadOnly />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel>Who Should Repair</FormLabel>
+                        <Input value={selectedWorkOrder?.whoShouldRepair || ''} isReadOnly />
+                      </FormControl>
+                    </HStack>
+                  </>
+                )}
+
+                <FormControl>
+                  <FormLabel>Scope of Work</FormLabel>
+                  <Textarea value={selectedWorkOrder?.scopeOfWork || ''} isReadOnly />
+                </FormControl>
+
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Created</FormLabel>
+                    <Input value={selectedWorkOrder?.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'} isReadOnly />
+                  </FormControl>
+                  {selectedWorkOrder?.completed && (
+                    <FormControl>
+                      <FormLabel>Completed</FormLabel>
+                      <Input value={selectedWorkOrder?.completedAt?.toDate?.()?.toLocaleDateString() || 'N/A'} isReadOnly />
+                    </FormControl>
+                  )}
+                </HStack>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              {selectedWorkOrder && (
+                <Button colorScheme="blue" onClick={handleWorkOrderPrint} mr={3}>
+                  Print Work Order
+                </Button>
+              )}
+              <Button onClick={onWorkOrderViewClose}>Close</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
         {/* Work Order Edit Modal */}
         <Modal isOpen={isWorkOrderEditOpen} onClose={onWorkOrderEditClose} size="xl">
           <ModalOverlay />
@@ -1071,6 +1224,21 @@ export const AdminPage = () => {
         }}>
           <div ref={labelRef} style={{ display: 'none' }}>
             {selectedDoc && <Label data={selectedDoc} />}
+          </div>
+        </div>
+
+        {/* Work Order Label for printing */}
+        <div style={{
+          position: 'fixed',
+          top: '-9999px',
+          left: '-9999px',
+          width: '4in',
+          height: '6in',
+          backgroundColor: 'white',
+          zIndex: -1
+        }}>
+          <div ref={workOrderLabelRef} style={{ display: 'none' }}>
+            {selectedWorkOrder && <WorkOrderLabel data={selectedWorkOrder} />}
           </div>
         </div>
       </VStack>
