@@ -17,6 +17,10 @@ interface WorkOrderLabelProps {
     completedAt?: any;
     createdAt: any;
     userEmail?: string;
+    isPickup?: boolean;
+    isDelivery?: boolean;
+    deliveryDate?: string;
+    deliveryLocation?: string;
   };
 }
 
@@ -82,6 +86,31 @@ export const WorkOrderLabel = ({ data }: WorkOrderLabelProps) => {
             </>
           )}
         </VStack>
+
+        {/* Fulfillment Details - Only for Purchased Items */}
+        {data.isPurchased && (data.isPickup || data.isDelivery) && (
+          <>
+            <Divider my={2} />
+            <VStack spacing={1} align="stretch">
+              <Text fontWeight="bold" className='label-header'>
+                {data.isPickup ? 'Pickup' : 'Delivery'}
+              </Text>
+              {data.isDelivery && (
+                <>
+                  {data.deliveryDate && (
+                    <Text>Delivery Date: {data.deliveryDate}</Text>
+                  )}
+                  {data.deliveryLocation && (
+                    <>
+                      <Text className='label-header'>Delivery Location</Text>
+                      <Text>{data.deliveryLocation}</Text>
+                    </>
+                  )}
+                </>
+              )}
+            </VStack>
+          </>
+        )}
 
         <Divider my={2} />
 

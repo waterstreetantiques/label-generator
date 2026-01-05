@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Box,
   Button,
@@ -14,11 +14,13 @@ import {
   Textarea,
   VStack,
   useColorModeValue,
+  useToast,
 } from '@chakra-ui/react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '@chakra-ui/react';
+import { WorkOrderLabel } from '../components/WorkOrderLabel';
+import printLabelStyles from '../printLabelStyles';
 
 const initialState = {
   isPurchased: true,
@@ -30,6 +32,10 @@ const initialState = {
   scopeOfWork: '',
   location: '',
   whoShouldRepair: '',
+  isPickup: true,
+  isDelivery: false,
+  deliveryDate: '',
+  deliveryLocation: '',
 };
 
 const repairPeople = [
@@ -52,6 +58,7 @@ const WorkOrderForm = () => {
   const toast = useToast();
   const boxBg = useColorModeValue('white', 'gray.700');
   const headingColor = useColorModeValue('gray.800', 'white');
+  const labelRef = useRef<HTMLDivElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -72,6 +79,58 @@ const WorkOrderForm = () => {
     }));
   };
 
+  const handleFulfillmentChange = (field: 'isPickup' | 'isDelivery') => {
+    setForm((prev) => ({
+      ...prev,
+      isPickup: field === 'isPickup',
+      isDelivery: field === 'isDelivery',
+      // Clear delivery fields when switching to pickup
+      ...(field === 'isPickup' && { deliveryDate: '', deliveryLocation: '' }),
+    }));
+  };
+
+  const handlePrint = () => {
+    if (!labelRef.current) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: 'Error',
+        description: 'Please allow popups for this site',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const labelContent = labelRef.current.innerHTML;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Label</title>
+          <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+          <style>
+            ${printLabelStyles}
+          </style>
+        </head>
+        <body>
+          ${labelContent}
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -87,6 +146,7 @@ const WorkOrderForm = () => {
         duration: 3000,
         isClosable: true,
       });
+      handlePrint();
       setForm(initialState);
     } catch (error: any) {
       toast({
@@ -147,6 +207,48 @@ const WorkOrderForm = () => {
 
                     <Divider />
 
+                    {/* Fulfillment Method */}
+                    <Heading size="md" alignSelf="flex-start">Fulfillment</Heading>
+                    <HStack spacing={8} justify="flex-start">
+                      <Checkbox
+                        isChecked={form.isPickup}
+                        onChange={() => handleFulfillmentChange('isPickup')}
+                      >
+                        Pick up
+                      </Checkbox>
+                      <Checkbox
+                        isChecked={form.isDelivery}
+                        onChange={() => handleFulfillmentChange('isDelivery')}
+                      >
+                        Delivery
+                      </Checkbox>
+                    </HStack>
+
+                    {form.isDelivery && (
+                      <VStack spacing={4} width="full">
+                        <FormControl isRequired>
+                          <FormLabel>Date of Delivery</FormLabel>
+                          <Input
+                            type="date"
+                            name="deliveryDate"
+                            value={form.deliveryDate}
+                            onChange={handleChange}
+                          />
+                        </FormControl>
+                        <FormControl isRequired>
+                          <FormLabel>Location of Delivery</FormLabel>
+                          <Textarea
+                            name="deliveryLocation"
+                            value={form.deliveryLocation}
+                            onChange={handleChange}
+                            placeholder="Enter delivery address"
+                          />
+                        </FormControl>
+                      </VStack>
+                    )}
+
+                    <Divider />
+
                     {/* Work Details */}
                     <Heading size="md" alignSelf="flex-start">Work Details</Heading>
                     <FormControl>
@@ -187,14 +289,56 @@ const WorkOrderForm = () => {
                 <Divider />
 
                 <HStack spacing={4} width="full" pt={4}>
-                  <Button type="submit" colorScheme="blue" flex={1}>
-                    Submit Work Order
+                  <Button
+                    type="submit"
+                    colorScheme="blue"
+                    flex={1}
+                  >
+                    Save & Print
+                  </Button>
+                  <Button
+                    onClick={handlePrint}
+                    colorScheme="green"
+                    flex={1}
+                  >
+                    Print Label
                   </Button>
                 </HStack>
               </VStack>
             </form>
           </VStack>
         </Box>
+        <div style={{ display: 'none' }}>
+          <div ref={labelRef} style={{
+            width: '4in',
+            height: '6in',
+            padding: '0.25in',
+            backgroundColor: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+            boxSizing: 'border-box'
+          }}>
+            <WorkOrderLabel data={{
+              id: '',
+              isPurchased: form.isPurchased,
+              name: form.name,
+              phone: form.phone,
+              invoice: form.invoice,
+              dateOfPurchase: form.dateOfPurchase,
+              location: form.location,
+              whoShouldRepair: form.whoShouldRepair,
+              scopeOfWork: form.scopeOfWork,
+              estimatedCompletion: form.estimatedCompletion,
+              completed: false,
+              createdAt: { toDate: () => new Date() },
+              userEmail: user?.email || undefined,
+              isPickup: form.isPickup,
+              isDelivery: form.isDelivery,
+              deliveryDate: form.deliveryDate,
+              deliveryLocation: form.deliveryLocation,
+            }} />
+          </div>
+        </div>
       </VStack>
     </Container>
   );
