@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Container,
+  Divider,
   Heading,
   Table,
   Thead,
@@ -37,6 +38,7 @@ import {
   FormLabel,
   Textarea,
   Checkbox,
+  Select,
   Tabs,
   TabList,
   TabPanels,
@@ -49,6 +51,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { Label } from '../components/Label';
 import { WorkOrderLabel } from '../components/WorkOrderLabel';
+import { TableOrderLabel } from '../components/TableOrderLabel';
 import printLabelStyles from '../printLabelStyles';
 
 interface ItemPurchased {
@@ -79,13 +82,17 @@ export const AdminPage = () => {
   const toast = useToast();
   const [documents, setDocuments] = useState<DocumentData[]>([]);
   const [workOrders, setWorkOrders] = useState<any[]>([]);
+  const [tableOrders, setTableOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDoc, setSelectedDoc] = useState<DocumentData | null>(null);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState<any | null>(null);
+  const [selectedTableOrder, setSelectedTableOrder] = useState<any | null>(null);
   const [editData, setEditData] = useState<Partial<DocumentData>>({});
   const [editWorkOrderData, setEditWorkOrderData] = useState<any>({});
+  const [editTableOrderData, setEditTableOrderData] = useState<any>({});
   const labelRef = useRef<HTMLDivElement>(null);
   const workOrderLabelRef = useRef<HTMLDivElement>(null);
+  const tableOrderLabelRef = useRef<HTMLDivElement>(null);
   const [pickupDateFilter, setPickupDateFilter] = useState('');
   const [deliveryDateFilter, setDeliveryDateFilter] = useState('');
   const [sortField, setSortField] = useState<'name' | 'fulfillment'>('fulfillment');
@@ -97,6 +104,9 @@ export const AdminPage = () => {
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
   const { isOpen: isWorkOrderEditOpen, onOpen: onWorkOrderEditOpen, onClose: onWorkOrderEditClose } = useDisclosure();
   const { isOpen: isWorkOrderViewOpen, onOpen: onWorkOrderViewOpen, onClose: onWorkOrderViewClose } = useDisclosure();
+  const { isOpen: isTableOrderDeleteOpen, onOpen: onTableOrderDeleteOpen, onClose: onTableOrderDeleteClose } = useDisclosure();
+  const { isOpen: isTableOrderEditOpen, onOpen: onTableOrderEditOpen, onClose: onTableOrderEditClose } = useDisclosure();
+  const { isOpen: isTableOrderViewOpen, onOpen: onTableOrderViewOpen, onClose: onTableOrderViewClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
 
   const handlePrint = () => {
@@ -183,9 +193,52 @@ export const AdminPage = () => {
     printWindow.document.close();
   };
 
+  const handleTableOrderPrint = () => {
+    if (!tableOrderLabelRef.current) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: 'Error',
+        description: 'Please allow popups for this site',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const labelContent = tableOrderLabelRef.current.innerHTML;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Table Order</title>
+          <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+          <style>
+            ${printLabelStyles}
+          </style>
+        </head>
+        <body>
+          ${labelContent}
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   useEffect(() => {
     fetchDocuments();
     fetchWorkOrders();
+    fetchTableOrders();
   }, []);
 
   const fetchDocuments = async () => {
@@ -224,6 +277,26 @@ export const AdminPage = () => {
       toast({
         title: 'Error',
         description: 'Failed to fetch work orders',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const fetchTableOrders = async () => {
+    try {
+      const querySnapshot = await getDocs(query(collection(db, 'table-orders'), orderBy('createdAt', 'desc')));
+      const orders = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setTableOrders(orders);
+    } catch (error) {
+      console.error('Error fetching table orders:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch table orders',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -361,6 +434,79 @@ export const AdminPage = () => {
     onWorkOrderDeleteOpen();
   };
 
+  const handleTableOrderDelete = async () => {
+    if (!selectedTableOrder) return;
+
+    try {
+      await deleteDoc(doc(db, 'table-orders', selectedTableOrder.id));
+      setTableOrders(orders => orders.filter(o => o.id !== selectedTableOrder.id));
+      toast({
+        title: 'Success',
+        description: 'Table order deleted successfully',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      onTableOrderDeleteClose();
+    } catch (error) {
+      console.error('Error deleting table order:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete table order',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleTableOrderView = (tableOrder: any) => {
+    setSelectedTableOrder(tableOrder);
+    onTableOrderViewOpen();
+  };
+
+  const handleTableOrderEdit = (tableOrder: any) => {
+    setSelectedTableOrder(tableOrder);
+    setEditTableOrderData({ ...tableOrder });
+    onTableOrderEditOpen();
+  };
+
+  const handleTableOrderUpdate = async () => {
+    if (!selectedTableOrder || !editTableOrderData) return;
+
+    try {
+      const docRef = doc(db, 'table-orders', selectedTableOrder.id);
+      await updateDoc(docRef, editTableOrderData);
+
+      setTableOrders(orders =>
+        orders.map(o => o.id === selectedTableOrder.id ? { ...o, ...editTableOrderData } : o)
+      );
+
+      toast({
+        title: 'Success',
+        description: 'Table order updated successfully',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      onTableOrderEditClose();
+    } catch (error) {
+      console.error('Error updating table order:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update table order',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleTableOrderDeleteClick = (tableOrder: any) => {
+    setSelectedTableOrder(tableOrder);
+    onTableOrderDeleteOpen();
+  };
+
   // Filtering logic
   const filteredDocuments = documents.filter(doc => {
     let pickupMatch = true;
@@ -466,6 +612,37 @@ export const AdminPage = () => {
     }
   };
 
+  const markTableOrderComplete = async (tableOrder: any) => {
+    try {
+      const docRef = doc(db, 'table-orders', tableOrder.id);
+      await updateDoc(docRef, {
+        completed: true,
+        completedAt: new Date()
+      });
+
+      setTableOrders(orders =>
+        orders.map(o => o.id === tableOrder.id ? { ...o, completed: true, completedAt: new Date() } : o)
+      );
+
+      toast({
+        title: 'Success',
+        description: 'Table order marked as complete',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error marking table order complete:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to mark table order as complete',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Container maxW="container.xl" py={10}>
@@ -484,6 +661,7 @@ export const AdminPage = () => {
           <TabList mb="1em">
             <Tab>Orders</Tab>
             <Tab>Work Orders</Tab>
+            <Tab>Table Orders</Tab>
           </TabList>
 
           <TabPanels>
@@ -730,6 +908,75 @@ export const AdminPage = () => {
                 </Table>
               </Box>
             </TabPanel>
+
+            <TabPanel>
+              {/* Table Orders Table */}
+              <Box overflowX="auto">
+                <Table variant="simple">
+                  <Thead>
+                    <Tr>
+                      <Th>Customer</Th>
+                      <Th>Invoice</Th>
+                      <Th>Date Created</Th>
+                      <Th>Status</Th>
+                      <Th>Actions</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {tableOrders.map((tableOrder) => (
+                      <Tr key={tableOrder.id}>
+                        <Td>{tableOrder.name}</Td>
+                        <Td>{tableOrder.invoice}</Td>
+                        <Td>{tableOrder.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'}</Td>
+                        <Td>
+                          {tableOrder.completed ? (
+                            <Badge colorScheme="green">Completed</Badge>
+                          ) : (
+                            <Badge colorScheme="yellow">Pending</Badge>
+                          )}
+                        </Td>
+                        <Td>
+                          <HStack spacing={2}>
+                            <IconButton
+                              aria-label="View table order"
+                              icon={<Box as="span" className="material-icons">visibility</Box>}
+                              size="sm"
+                              colorScheme="blue"
+                              onClick={() => handleTableOrderView(tableOrder)}
+                            />
+                            <IconButton
+                              aria-label="Edit table order"
+                              icon={<Box as="span" className="material-icons">edit</Box>}
+                              size="sm"
+                              colorScheme="blue"
+                              onClick={() => handleTableOrderEdit(tableOrder)}
+                            />
+                            {!tableOrder.completed && (
+                              <Button
+                                size="sm"
+                                colorScheme="green"
+                                onClick={() => markTableOrderComplete(tableOrder)}
+                              >
+                                Mark Complete
+                              </Button>
+                            )}
+                            {tableOrder.completed && (
+                              <IconButton
+                                aria-label="Delete table order"
+                                icon={<Box as="span" className="material-icons">delete</Box>}
+                                size="sm"
+                                colorScheme="red"
+                                onClick={() => handleTableOrderDeleteClick(tableOrder)}
+                              />
+                            )}
+                          </HStack>
+                        </Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            </TabPanel>
           </TabPanels>
         </Tabs>
 
@@ -780,6 +1027,33 @@ export const AdminPage = () => {
                   Cancel
                 </Button>
                 <Button colorScheme="red" onClick={handleWorkOrderDelete} ml={3}>
+                  Delete
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
+
+        {/* Table Order Delete Confirmation Dialog */}
+        <AlertDialog
+          isOpen={isTableOrderDeleteOpen}
+          leastDestructiveRef={cancelRef}
+          onClose={onTableOrderDeleteClose}
+        >
+          <AlertDialogOverlay>
+            <AlertDialogContent>
+              <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                Delete Table Order
+              </AlertDialogHeader>
+              <AlertDialogBody>
+                Are you sure you want to delete the table order for {selectedTableOrder?.name}?
+                This action cannot be undone.
+              </AlertDialogBody>
+              <AlertDialogFooter>
+                <Button ref={cancelRef} onClick={onTableOrderDeleteClose}>
+                  Cancel
+                </Button>
+                <Button colorScheme="red" onClick={handleTableOrderDelete} ml={3}>
                   Delete
                 </Button>
               </AlertDialogFooter>
@@ -1239,6 +1513,333 @@ export const AdminPage = () => {
         }}>
           <div ref={workOrderLabelRef} style={{ display: 'none' }}>
             {selectedWorkOrder && <WorkOrderLabel data={selectedWorkOrder} />}
+          </div>
+        </div>
+
+        {/* Table Order View Modal */}
+        <Modal isOpen={isTableOrderViewOpen} onClose={onTableOrderViewClose} size="xl">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>View Table Order</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={4}>
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Status</FormLabel>
+                    <Badge colorScheme={selectedTableOrder?.completed ? 'green' : 'yellow'}>
+                      {selectedTableOrder?.completed ? 'Completed' : 'Pending'}
+                    </Badge>
+                  </FormControl>
+                </HStack>
+
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Name</FormLabel>
+                    <Input value={selectedTableOrder?.name || ''} isReadOnly />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Phone</FormLabel>
+                    <Input value={selectedTableOrder?.phone || ''} isReadOnly />
+                  </FormControl>
+                </HStack>
+
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Invoice</FormLabel>
+                    <Input value={selectedTableOrder?.invoice || ''} isReadOnly />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Bal Due</FormLabel>
+                    <Input value={selectedTableOrder?.balDue || ''} isReadOnly />
+                  </FormControl>
+                </HStack>
+
+                <Divider />
+
+                <Heading size="sm" alignSelf="flex-start">Specifications</Heading>
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Size</FormLabel>
+                    <Input value={selectedTableOrder?.size || ''} isReadOnly />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Table Top Thickness</FormLabel>
+                    <Input value={selectedTableOrder?.tableTopThickness || ''} isReadOnly />
+                  </FormControl>
+                </HStack>
+
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Leg Style</FormLabel>
+                    <Input value={selectedTableOrder?.legStyle || ''} isReadOnly />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Wood</FormLabel>
+                    <Input value={selectedTableOrder?.wood || ''} isReadOnly />
+                  </FormControl>
+                </HStack>
+
+                <Divider />
+
+                <Heading size="sm" alignSelf="flex-start">Finish</Heading>
+                <FormControl>
+                  <FormLabel>Stain Color</FormLabel>
+                  <Input value={selectedTableOrder?.stainColor || ''} isReadOnly />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Distressing</FormLabel>
+                  <Input value={selectedTableOrder?.distressing || ''} isReadOnly />
+                </FormControl>
+
+                {selectedTableOrder?.distressing !== 'None' && (
+                  <VStack spacing={2} align="flex-start" width="full" pl={4}>
+                    <Checkbox isChecked={selectedTableOrder?.sawMarks} isReadOnly>
+                      Saw Marks
+                    </Checkbox>
+                    <Checkbox isChecked={selectedTableOrder?.handScrapped} isReadOnly>
+                      Hand-scrapped
+                    </Checkbox>
+                  </VStack>
+                )}
+
+                <Divider />
+
+                <Heading size="sm" alignSelf="flex-start">Additional Options</Heading>
+                <VStack spacing={2} align="flex-start" width="full">
+                  <Checkbox isChecked={selectedTableOrder?.breadboardEnds} isReadOnly>
+                    Breadboard Ends
+                  </Checkbox>
+                  <Checkbox isChecked={selectedTableOrder?.extensions} isReadOnly>
+                    Extensions
+                  </Checkbox>
+                </VStack>
+
+                {selectedTableOrder?.otherNotes && (
+                  <>
+                    <Divider />
+                    <FormControl>
+                      <FormLabel>Other Notes</FormLabel>
+                      <Textarea value={selectedTableOrder?.otherNotes || ''} isReadOnly />
+                    </FormControl>
+                  </>
+                )}
+
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Created</FormLabel>
+                    <Input value={selectedTableOrder?.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'} isReadOnly />
+                  </FormControl>
+                  {selectedTableOrder?.completed && (
+                    <FormControl>
+                      <FormLabel>Completed</FormLabel>
+                      <Input value={selectedTableOrder?.completedAt?.toDate?.()?.toLocaleDateString() || 'N/A'} isReadOnly />
+                    </FormControl>
+                  )}
+                </HStack>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              {selectedTableOrder && (
+                <Button colorScheme="blue" onClick={handleTableOrderPrint} mr={3}>
+                  Print Label
+                </Button>
+              )}
+              <Button onClick={onTableOrderViewClose}>Close</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Table Order Edit Modal */}
+        <Modal isOpen={isTableOrderEditOpen} onClose={onTableOrderEditClose} size="xl">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Edit Table Order</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={4}>
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Name</FormLabel>
+                    <Input
+                      value={editTableOrderData.name || ''}
+                      onChange={(e) => setEditTableOrderData({ ...editTableOrderData, name: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Phone</FormLabel>
+                    <Input
+                      value={editTableOrderData.phone || ''}
+                      onChange={(e) => setEditTableOrderData({ ...editTableOrderData, phone: e.target.value })}
+                    />
+                  </FormControl>
+                </HStack>
+
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Invoice</FormLabel>
+                    <Input
+                      value={editTableOrderData.invoice || ''}
+                      onChange={(e) => setEditTableOrderData({ ...editTableOrderData, invoice: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Bal Due</FormLabel>
+                    <Input
+                      value={editTableOrderData.balDue || ''}
+                      onChange={(e) => setEditTableOrderData({ ...editTableOrderData, balDue: e.target.value })}
+                    />
+                  </FormControl>
+                </HStack>
+
+                <Divider />
+
+                <Heading size="sm" alignSelf="flex-start">Specifications</Heading>
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Size</FormLabel>
+                    <Input
+                      value={editTableOrderData.size || ''}
+                      onChange={(e) => setEditTableOrderData({ ...editTableOrderData, size: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Table Top Thickness</FormLabel>
+                    <Input
+                      value={editTableOrderData.tableTopThickness || ''}
+                      onChange={(e) => setEditTableOrderData({ ...editTableOrderData, tableTopThickness: e.target.value })}
+                    />
+                  </FormControl>
+                </HStack>
+
+                <HStack spacing={4} width="full">
+                  <FormControl>
+                    <FormLabel>Leg Style</FormLabel>
+                    <Input
+                      value={editTableOrderData.legStyle || ''}
+                      onChange={(e) => setEditTableOrderData({ ...editTableOrderData, legStyle: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Wood</FormLabel>
+                    <Input
+                      value={editTableOrderData.wood || ''}
+                      onChange={(e) => setEditTableOrderData({ ...editTableOrderData, wood: e.target.value })}
+                    />
+                  </FormControl>
+                </HStack>
+
+                <Divider />
+
+                <Heading size="sm" alignSelf="flex-start">Finish</Heading>
+                <FormControl>
+                  <FormLabel>Stain Color</FormLabel>
+                  <Input
+                    value={editTableOrderData.stainColor || ''}
+                    onChange={(e) => setEditTableOrderData({ ...editTableOrderData, stainColor: e.target.value })}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Distressing</FormLabel>
+                  <Select
+                    value={editTableOrderData.distressing || 'None'}
+                    onChange={(e) => setEditTableOrderData({ ...editTableOrderData, distressing: e.target.value })}
+                  >
+                    <option value="None">None</option>
+                    <option value="Mild">Mild</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Heavy">Heavy</option>
+                  </Select>
+                </FormControl>
+
+                {editTableOrderData.distressing !== 'None' && (
+                  <VStack spacing={2} align="flex-start" width="full" pl={4}>
+                    <Checkbox
+                      isChecked={editTableOrderData.sawMarks || false}
+                      onChange={(e) => setEditTableOrderData({ ...editTableOrderData, sawMarks: e.target.checked })}
+                    >
+                      Saw Marks
+                    </Checkbox>
+                    <Checkbox
+                      isChecked={editTableOrderData.handScrapped || false}
+                      onChange={(e) => setEditTableOrderData({ ...editTableOrderData, handScrapped: e.target.checked })}
+                    >
+                      Hand-scrapped
+                    </Checkbox>
+                  </VStack>
+                )}
+
+                <Divider />
+
+                <Heading size="sm" alignSelf="flex-start">Additional Options</Heading>
+                <VStack spacing={2} align="flex-start" width="full">
+                  <Checkbox
+                    isChecked={editTableOrderData.breadboardEnds || false}
+                    onChange={(e) => setEditTableOrderData({ ...editTableOrderData, breadboardEnds: e.target.checked })}
+                  >
+                    Breadboard Ends
+                  </Checkbox>
+                  <Checkbox
+                    isChecked={editTableOrderData.extensions || false}
+                    onChange={(e) => setEditTableOrderData({ ...editTableOrderData, extensions: e.target.checked })}
+                  >
+                    Extensions
+                  </Checkbox>
+                </VStack>
+
+                <Divider />
+
+                <FormControl>
+                  <FormLabel>Other Notes</FormLabel>
+                  <Textarea
+                    value={editTableOrderData.otherNotes || ''}
+                    onChange={(e) => setEditTableOrderData({ ...editTableOrderData, otherNotes: e.target.value })}
+                    placeholder="Enter any additional notes (optional)"
+                  />
+                </FormControl>
+
+                <Divider />
+
+                <FormControl>
+                  <FormLabel>Status</FormLabel>
+                  <Checkbox
+                    isChecked={editTableOrderData.completed || false}
+                    onChange={(e) => setEditTableOrderData({
+                      ...editTableOrderData,
+                      completed: e.target.checked,
+                      completedAt: e.target.checked ? new Date() : null
+                    })}
+                  >
+                    Mark as Complete
+                  </Checkbox>
+                </FormControl>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              <Button mr={3} onClick={onTableOrderEditClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="blue" onClick={handleTableOrderUpdate}>
+                Update
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Table Order Label for printing */}
+        <div style={{
+          position: 'fixed',
+          top: '-9999px',
+          left: '-9999px',
+          width: '4in',
+          height: '6in',
+          backgroundColor: 'white',
+          zIndex: -1
+        }}>
+          <div ref={tableOrderLabelRef} style={{ display: 'none' }}>
+            {selectedTableOrder && <TableOrderLabel data={selectedTableOrder} />}
           </div>
         </div>
       </VStack>
