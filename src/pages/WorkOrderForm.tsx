@@ -5,6 +5,7 @@ import {
   Checkbox,
   Container,
   Divider,
+  Flex,
   FormControl,
   FormLabel,
   HStack,
@@ -209,7 +210,7 @@ const WorkOrderForm = () => {
 
                     {/* Fulfillment Method */}
                     <Heading size="md" alignSelf="flex-start">Fulfillment</Heading>
-                    <HStack spacing={8} justify="flex-start">
+                    <Flex width="full" align="flex-start" gap={8}>
                       <Checkbox
                         isChecked={form.isPickup}
                         onChange={() => handleFulfillmentChange('isPickup')}
@@ -222,7 +223,7 @@ const WorkOrderForm = () => {
                       >
                         Delivery
                       </Checkbox>
-                    </HStack>
+                    </Flex>
 
                     {form.isDelivery && (
                       <VStack spacing={4} width="full">

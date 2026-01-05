@@ -10,6 +10,7 @@ import { NotFound } from './pages/NotFound';
 import { ColorModeToggle } from './components/ColorModeToggle';
 import theme from './theme';
 import WorkOrderForm from './pages/WorkOrderForm';
+import TableOrderForm from './pages/TableOrderForm';
 
 const AppHeader = () => {
   const headerBg = useColorModeValue('white', 'gray.900');
@@ -62,6 +63,15 @@ const AppHeader = () => {
                     size="sm"
                   >
                     Work Order
+                  </Button>
+                  <Button
+                    as={Link}
+                    to="/table-order"
+                    variant={isActive('/table-order') ? 'solid' : 'ghost'}
+                    colorScheme={isActive('/table-order') ? 'blue' : 'gray'}
+                    size="sm"
+                  >
+                    Table Order
                   </Button>
                 </HStack>
               )}
@@ -116,6 +126,17 @@ const AppHeader = () => {
                 >
                   Work Order
                 </Button>
+                <Button
+                  as={Link}
+                  to="/table-order"
+                  variant={isActive('/table-order') ? 'solid' : 'ghost'}
+                  colorScheme={isActive('/table-order') ? 'blue' : 'gray'}
+                  size="xs"
+                  fontSize="xs"
+                  px={2}
+                >
+                  Table Order
+                </Button>
               </HStack>
             )}
           </VStack>
@@ -154,6 +175,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <WorkOrderForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/table-order"
+              element={
+                <ProtectedRoute>
+                  <TableOrderForm />
                 </ProtectedRoute>
               }
             />
