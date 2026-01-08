@@ -116,6 +116,39 @@ export const TableOrderLabel = ({ data }: TableOrderLabelProps) => {
           </>
         )}
 
+        {/* Signature Areas */}
+        <VStack spacing={3} align="stretch" mt={data.otherNotes ? 2 : 0}>
+          {/* QC Sign Off */}
+          <Box>
+            <Text fontWeight="bold" fontSize="sm" mb={1} style={{ fontWeight: 'bold' }} className="label-bold">QC Sign Off:</Text>
+            <Box 
+              borderBottomWidth={1} 
+              borderColor="black" 
+              pb={0.5} 
+              mb={1} 
+              minH="20px"
+              style={{ borderBottom: '1px solid black' }}
+            >
+              {/* Signature line */}
+            </Box>
+          </Box>
+
+          {/* Ready for Customer */}
+          <Box>
+            <Text fontWeight="bold" fontSize="sm" mb={1} style={{ fontWeight: 'bold' }} className="label-bold">Ready for Customer:</Text>
+            <Box 
+              borderBottomWidth={1} 
+              borderColor="black" 
+              pb={0.5} 
+              mb={1} 
+              minH="20px"
+              style={{ borderBottom: '1px solid black' }}
+            >
+              {/* Signature line */}
+            </Box>
+          </Box>
+        </VStack>
+
         <Divider my={2} />
 
         <VStack spacing={1} align="stretch">

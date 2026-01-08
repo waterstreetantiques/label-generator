@@ -49,6 +49,13 @@ const printLabelStyles = `
   div[style*="font-weight: bold"], div[style*="font-weight:bold"] {
     font-weight: bold !important;
   }
+  /* Signature lines */
+  .chakra-box[style*="border-bottom"] {
+    border-bottom: 1px solid black !important;
+  }
+  span[style*="border-bottom"] {
+    border-bottom: 1px solid black !important;
+  }
   .chakra-divider {
     border-color: black;
     margin: 6px 0;
