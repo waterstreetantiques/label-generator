@@ -59,13 +59,19 @@ export const TableOrderLabel = ({ data }: TableOrderLabelProps) => {
 
         {/* Customer Information */}
         <VStack spacing={1} align="stretch">
-          <Text fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">
-            Customer: {data.name}
+          <Text>
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Customer:</Text> {data.name}
           </Text>
-          <Text fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Phone: {data.phone}</Text>
+          <Text>
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Phone:</Text> {data.phone}
+          </Text>
           <HStack justify="space-between">
-            <Text>Invoice #: {data.invoice}</Text>
-            <Text>Bal Due: {data.balDue}</Text>
+            <Text>
+              <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Invoice #:</Text> {data.invoice}
+            </Text>
+            <Text>
+              <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Bal Due:</Text> {data.balDue}
+            </Text>
           </HStack>
         </VStack>
 
@@ -76,10 +82,18 @@ export const TableOrderLabel = ({ data }: TableOrderLabelProps) => {
           <Text fontWeight="bold" className='label-header'>
             Specifications
           </Text>
-          <Text>Size: {data.size}</Text>
-          <Text>Table Top Thickness: {data.tableTopThickness}</Text>
-          <Text>Leg Style: {data.legStyle}</Text>
-          <Text>Wood: {data.wood}</Text>
+          <Text>
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Size:</Text> {data.size}
+          </Text>
+          <Text>
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Table Top Thickness:</Text> {data.tableTopThickness}
+          </Text>
+          <Text>
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Leg Style:</Text> {data.legStyle}
+          </Text>
+          <Text>
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Wood:</Text> {data.wood}
+          </Text>
         </VStack>
 
         <Divider my={2} />
@@ -89,9 +103,13 @@ export const TableOrderLabel = ({ data }: TableOrderLabelProps) => {
           <Text fontWeight="bold" className='label-header'>
             Finish
           </Text>
-          <Text>Stain Color: {data.stainColor}</Text>
+          <Text>
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Stain Color:</Text> {data.stainColor}
+          </Text>
           {getDistressingDetails() && (
-            <Text>Distressing: {getDistressingDetails()}</Text>
+            <Text>
+              <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Distressing:</Text> {getDistressingDetails()}
+            </Text>
           )}
         </VStack>
 
@@ -102,8 +120,12 @@ export const TableOrderLabel = ({ data }: TableOrderLabelProps) => {
           <Text fontWeight="bold" className='label-header'>
             Additional Options
           </Text>
-          <Text>Breadboard Ends: {data.breadboardEnds ? 'Yes' : 'No'}</Text>
-          <Text>Extensions: {data.extensions ? 'Yes' : 'No'}</Text>
+          <Text>
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Breadboard Ends:</Text> {data.breadboardEnds ? 'Yes' : 'No'}
+          </Text>
+          <Text>
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Extensions:</Text> {data.extensions ? 'Yes' : 'No'}
+          </Text>
         </VStack>
 
         {data.otherNotes && (
@@ -152,7 +174,9 @@ export const TableOrderLabel = ({ data }: TableOrderLabelProps) => {
         <Divider my={2} />
 
         <VStack spacing={1} align="stretch">
-          <Text>Created: {data.createdAt?.toDate?.()?.toLocaleDateString() || new Date().toLocaleDateString()}</Text>
+          <Text>
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Created:</Text> {data.createdAt?.toDate?.()?.toLocaleDateString() || new Date().toLocaleDateString()}
+          </Text>
         </VStack>
 
         {data.userEmail && (
@@ -169,7 +193,7 @@ export const TableOrderLabel = ({ data }: TableOrderLabelProps) => {
 
         <Box position="absolute" bottom={2} left={2} right={2}>
           <Text textAlign="left" color="gray.600" className='label-small'>
-            Generated: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+            <Text as="span" fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Generated:</Text> {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
           </Text>
         </Box>
       </VStack>
