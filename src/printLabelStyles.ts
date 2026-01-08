@@ -41,6 +41,14 @@ const printLabelStyles = `
   .chakra-text {
     margin: 0;
   }
+  .label-bold, .chakra-text[style*="font-weight: bold"], .chakra-text[style*="font-weight:bold"] {
+    font-weight: bold !important;
+  }
+  p[style*="font-weight: bold"], p[style*="font-weight:bold"],
+  span[style*="font-weight: bold"], span[style*="font-weight:bold"],
+  div[style*="font-weight: bold"], div[style*="font-weight:bold"] {
+    font-weight: bold !important;
+  }
   .chakra-divider {
     border-color: black;
     margin: 6px 0;

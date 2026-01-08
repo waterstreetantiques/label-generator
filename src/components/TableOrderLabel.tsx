@@ -59,10 +59,10 @@ export const TableOrderLabel = ({ data }: TableOrderLabelProps) => {
 
         {/* Customer Information */}
         <VStack spacing={1} align="stretch">
-          <Text fontWeight="bold">
+          <Text fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">
             Customer: {data.name}
           </Text>
-          <Text>Phone: {data.phone}</Text>
+          <Text fontWeight="bold" style={{ fontWeight: 'bold' }} className="label-bold">Phone: {data.phone}</Text>
           <HStack justify="space-between">
             <Text>Invoice #: {data.invoice}</Text>
             <Text>Bal Due: {data.balDue}</Text>
